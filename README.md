@@ -18,7 +18,7 @@ Templates path: <HOME_DIR>/.templatron
 
 ## What?
 
-Templatron lets you generate skeleton based on templates. Templates are simple directory which can contains many files with placeholders.
+Templatron lets you quickly generate directory/file structure based on templates. Templates are as simple as directories put in the right place (<HOME_DIR>/.templatron) which can contains many files with placeholders.
 
 ## How?
 
@@ -46,7 +46,7 @@ It will be translated to:
 
 As you can see, occurences of `{$n}` as been replaced by the argument value at the `n` index. You can also pass default values for placeholders as shown in  `{$2-avatar}.png`. You can replaced the `-` with any non whitespace character and it will still work.
 
-The same applies for file content. So if I had this text in the template file `README.md`:
+The same applies for file content. So if you had this text in the template file `README.md`:
 
 ```markdown
 {$0 Untitled}
