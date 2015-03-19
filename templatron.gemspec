@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = Templatron::VERSION
   s.authors = ['Julien Leicher']
   s.email = ['jleicher@gmail.com']
-  s.homepage = ''
-  s.summary = 'An easy to use template generator'
+  s.homepage = 'https://github.com/YuukanOO/templatron'
+  s.summary = 'An easy to use scaffold generator'
   s.description = 'Defines templates with variables and generates whatever you want'
 
   s.rubyforge_project = 'templatron'
