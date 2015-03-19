@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.version = Templatron::VERSION
   s.authors = ['Julien Leicher']
   s.email = ['jleicher@gmail.com']
+  s.licenses    = ['MIT']
   s.homepage = 'https://github.com/YuukanOO/templatron'
   s.summary = 'An easy to use scaffold generator'
   s.description = 'Defines templates with variables and generates whatever you want'
