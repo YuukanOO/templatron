@@ -74,6 +74,10 @@ Project created by John Doe
 
 In the previous example, what if you want to only give the second argument a value. That's simple, just pass it to the command: `templatron base/profile $1="John Doe"`
 
+## Why?
+
+I wanted a simple application to generate base structure for a lot of stuff I find myself repeating over and over, so I've decided to write this tiny application.
+
 ## Development
 
 Clone this repository `git clone git@github.com:YuukanOO/templatron.git`, install dependencies `bundle install` and install the gem `rake install`.
