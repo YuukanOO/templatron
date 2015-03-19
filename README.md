@@ -1,4 +1,5 @@
-Templatron: an easy to use scaffold tool
+Templatron: an easy to use scaffold tool [![Gem Version](https://badge.fury.io/rb/templatron.svg)](http://badge.fury.io/rb/templatron)
+===
 
 ## Installation
 
