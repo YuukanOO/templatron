@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require 'FileUtils'
+require 'fileutils'
 require 'templatron/config'
 
 module Templatron
@@ -65,7 +65,7 @@ module Templatron
       entries.each do |path|
 
         # Get base path
-        new_path = path.gsub(@full_template_path, '')
+        new_path = path.sub(@full_template_path, '')
         
         # Apply arguments to the path
         apply_arguments!(new_path)

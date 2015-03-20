@@ -10,18 +10,24 @@ gem install templatron
 ## Usage
 
 ```console
-Usage: templatron TEMPLATE_NAME [args] [-o output_dir]
+Usage:
+    templatron [OPTIONS] SUBCOMMAND [ARG] ...
 
-Features:
-    -o, --output PATH                Where to put the generated files
+Parameters:
+    SUBCOMMAND                    subcommand
+    [ARG] ...                     subcommand arguments
 
-Common options:
-    -v, --verbose                    Verbose mode
-    -h, --help                       Show this message
-        --version                    Show version
+Subcommands:
+    build                         Build from templates
+    list                          List available templates
 
-Templates path: <HOME_DIR>/.templatron
+Options:
+    -h, --help                    print help
+    -v, --verbose                 Enable verbose mode (default: false)
+    --version                     Show the current version
 ```
+
+**/!\** Since it uses [clamp](https://github.com/mdub/clamp) as its cli framework, you'll have to put flags before the command.
 
 ## What?
 
@@ -35,7 +41,7 @@ Let's see an example of how it works, it's very simple.
 
 ### Basic usage
 
-When you call `templatron base/profile sample_project "John Doe"`, it looks for a folder at the location `<HOME_DIR>/.templatron/base/profile`.
+When you call `templatron build base/profile sample_project "John Doe"`, it looks for a folder at the location `<HOME_DIR>/.templatron/base/profile`.
 
 If no one is found, it will let you know, otherwise, it will process each entries of this folder. For example, let's say we have this hierarchy:
 
