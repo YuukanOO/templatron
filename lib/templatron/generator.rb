@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'fileutils'
 require 'templatron/config'
+require 'templatron/collector'
 
 module Templatron
 
@@ -20,7 +21,8 @@ module Templatron
       @output = File.expand_path(output_dir)
       @verbose = verbose
       @clear = delete_dir
-      @full_template_path = File.join(Templatron::templates_path, @template)
+
+      @collector = Collector.new(@template, true, true)
 
       process_raw_arguments(args)
     end
@@ -28,7 +30,7 @@ module Templatron
     # Public: Effectively process a template to generate it
     def build
       # Check template existence
-      if !check_template_dir(@full_template_path)
+      if !check_template_dir(@collector.full_path)
         puts "The template #{@template} does not appear to exist in #{@full_template_path}"
         exit
       end
@@ -41,19 +43,15 @@ module Templatron
 
       # Print details if verbose is on
       if @verbose
-        puts "Starting building #{@full_template_path} to #{@output}"
+        puts "Starting building #{@collector.full_path} to #{@output}"
         puts "With:"
         @arguments.each_with_index do |arg, i|
           puts "\t{$#{i}} => #{arg}" if !arg.nil?
         end
       end
 
-      # And then process each files/folder
-      collect_str = File.join(@full_template_path, '**', '*')
-      # At this point, all file entries have been collected
-      entries = Dir[collect_str].map { |p| p if File.file?(p) }.compact
       # So process them right now
-      process_files(entries)
+      process_files(@collector.list)
     end
 
     protected
@@ -65,23 +63,30 @@ module Templatron
       entries.each do |path|
 
         # Get base path
-        new_path = path.sub(@full_template_path, '')
+        new_path = path.sub(@collector.full_path, '')
         
+        is_dir = File.directory?(path)
+
         # Apply arguments to the path
         apply_arguments!(new_path)
 
-        # Now we can copy the entry
         full_new_path = File.join(@output, new_path)
 
-        puts "Copying #{path} to #{full_new_path}" if @verbose
+        if is_dir
+          puts "Creating directory #{path} to #{full_new_path}" if @verbose
+          FileUtils.mkdir_p(full_new_path)
+        else
+          # Now we can copy the entry
+          puts "Copying #{path} to #{full_new_path}" if @verbose
 
-        FileUtils.mkdir_p(File.dirname(full_new_path))
-        FileUtils.copy(path, full_new_path)
+          FileUtils.mkdir_p(File.dirname(full_new_path))
+          FileUtils.copy(path, full_new_path)
 
-        file_content = File.read(full_new_path)
-        apply_arguments!(file_content)
-        File.open(full_new_path, 'w') do |f|
-          f.puts file_content
+          file_content = File.read(full_new_path)
+          apply_arguments!(file_content)
+          File.open(full_new_path, 'w') do |f|
+            f.puts file_content
+          end
         end
       end
     end

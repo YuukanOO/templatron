@@ -3,6 +3,7 @@ require 'clamp'
 require 'templatron/version'
 require 'templatron/config'
 require 'templatron/generator'
+require 'templatron/collector'
 
 module Templatron
 
@@ -17,13 +18,16 @@ module Templatron
 
   # Use to list the template dir
   class ListCommand < AbstractCommand
+    parameter '[SUB_PATH]', 'Relative path to list from',
+      :attribute_name => :subpath,
+      :default => ''
+    option ['-a', '--all'], :flag, 'Also show files', :default => false
 
     def execute
-      path = Templatron::templates_path
-      puts "Listing templates from: #{path}"
-      entries = Dir[File.join(path, '**')].map { |e| e if File.directory?(e) }.compact
+      col = Collector.new(subpath, all?, false, verbose?)
+      entries = col.list
 
-      entries.each { |e| puts "\t #{e.sub(path, '')}" }
+      entries.each { |e| puts e.sub(col.full_path, '') }
     end
   end
 
@@ -34,9 +38,9 @@ module Templatron
     parameter '[ARGS] ...', 'Template arguments',
       :attribute_name => :arguments
     option ['-o', '--output'], 'OUTPUT_DIR', 'Where to put the generated files',
-      :attribute_name => :output,
       :default => Dir.pwd
-    option ['-d', '--delete'], :flag, 'Clear the output folder first', :default => false
+    option ['-d', '--delete'], :flag, 'Clear the output folder first', 
+      :default => false
 
     def execute
       # Instantiate the generator and build the stuff
