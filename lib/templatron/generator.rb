@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
-require 'FileUtils'
+require 'fileutils'
 require 'templatron/config'
+require 'templatron/collector'
 
 module Templatron
 
@@ -20,7 +21,8 @@ module Templatron
       @output = File.expand_path(output_dir)
       @verbose = verbose
       @clear = delete_dir
-      @full_template_path = File.join(Templatron::templates_path, @template)
+
+      @collector = Collector.new(@template, true, true)
 
       process_raw_arguments(args)
     end
@@ -28,7 +30,7 @@ module Templatron
     # Public: Effectively process a template to generate it
     def build
       # Check template existence
-      if !check_template_dir(@full_template_path)
+      if !check_template_dir(@collector.full_path)
         puts "The template #{@template} does not appear to exist in #{@full_template_path}"
         exit
       end
@@ -36,27 +38,44 @@ module Templatron
       # If sets, remove the output folder first
       if @clear
         puts "Clearing #{@output}" if @verbose
-        FileUtils.remove_dir(@output, true)
+        begin
+          FileUtils.remove_dir(@output)
+        rescue => ex
+          puts """Could not clear the folder, maybe someone is accessing it?
+  
+  #{ex.message}
+"""
+          exit(1)
+        end
       end
 
       # Print details if verbose is on
       if @verbose
-        puts "Starting building #{@full_template_path} to #{@output}"
-        puts "With:"
+        puts "Starting building #{@collector.full_path} to #{@output}"
+        puts "With:" if !@arguments.empty?
         @arguments.each_with_index do |arg, i|
           puts "\t{$#{i}} => #{arg}" if !arg.nil?
         end
       end
 
-      # And then process each files/folder
-      collect_str = File.join(@full_template_path, '**', '*')
-      # At this point, all file entries have been collected
-      entries = Dir[collect_str].map { |p| p if File.file?(p) }.compact
       # So process them right now
-      process_files(entries)
+      process_files(@collector.list)
     end
 
     protected
+
+    # Internal: Try to create a directory and fails gracefuly
+    def create_directory(path)
+      begin
+        FileUtils.mkdir_p(path)
+      rescue => ex
+        puts """Error while creating the directory #{path}
+
+  #{ex.message}
+"""
+        exit(1)
+      end
+    end
 
     # Internal: Process each entries, copy the files and replaces variables
     # 
@@ -65,23 +84,30 @@ module Templatron
       entries.each do |path|
 
         # Get base path
-        new_path = path.gsub(@full_template_path, '')
+        new_path = path.sub(@collector.full_path, '')
         
+        is_dir = File.directory?(path)
+
         # Apply arguments to the path
         apply_arguments!(new_path)
 
-        # Now we can copy the entry
         full_new_path = File.join(@output, new_path)
 
-        puts "Copying #{path} to #{full_new_path}" if @verbose
+        if is_dir
+          puts "Creating directory #{path} to #{full_new_path}" if @verbose
+          create_directory(full_new_path)
+        else
+          # Now we can copy the entry
+          puts "Copying #{path} to #{full_new_path}" if @verbose
 
-        FileUtils.mkdir_p(File.dirname(full_new_path))
-        FileUtils.copy(path, full_new_path)
+          create_directory(File.dirname(full_new_path))
+          FileUtils.copy(path, full_new_path)
 
-        file_content = File.read(full_new_path)
-        apply_arguments!(file_content)
-        File.open(full_new_path, 'w') do |f|
-          f.puts file_content
+          file_content = File.read(full_new_path)
+          apply_arguments!(file_content)
+          File.open(full_new_path, 'w') do |f|
+            f.puts file_content
+          end
         end
       end
     end
@@ -109,17 +135,20 @@ module Templatron
     # 
     # str - Where to look & replace
     def apply_arguments!(str)
-      str.scan(/{\$(\d*)\W?([\w\s]*)}/).each do |match|
+      str.scan(Templatron::PLACEHOLDER_REG).each do |match|
         match_i = match[0].to_i
         arg_value = @arguments[match_i]
         arg_value = match[1] if arg_value.nil?
-        str.gsub!(/{\$#{match_i}\W?([\w\s]*)}/, arg_value)
+
+        str.gsub!(Templatron::placeholder_reg(match_i), arg_value)
       end
     end
 
     # Internal: Check if the template directory exists
     # 
     # dir - Where to look
+    # 
+    # Returns true if the directory exists, false otherwise
     def check_template_dir(dir)
       Dir.exist?(dir)
     end

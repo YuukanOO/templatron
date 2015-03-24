@@ -1,80 +1,71 @@
 # -*- encoding: utf-8 -*-
+require 'clamp'
 require 'templatron/version'
 require 'templatron/config'
 require 'templatron/generator'
-require 'optparse'
-require 'ostruct'
+require 'templatron/collector'
 
 module Templatron
 
+  # Represents a base class with command flags
+  class AbstractCommand < Clamp::Command
+    option ['-v', '--verbose'], :flag, 'Enable verbose mode', :default => false
+    option '--version', :flag, 'Show the current version' do
+      puts Templatron::VERSION
+      exit(0)
+    end
+  end
+
+  # Use to list the template dir
+  class ListCommand < AbstractCommand
+    parameter '[SUB_PATH]', 'Relative path to list from',
+      :attribute_name => :subpath,
+      :default => ''
+    option ['-a', '--all'], :flag, 'Also show files', :default => false
+
+    def execute
+      col = Collector.new(subpath, all?, false, verbose?)
+      entries = col.list
+
+      entries.each { |e| puts e.sub(col.full_path, '') }
+    end
+  end
+
+  # Use to build stuff!
+  class BuildCommand < AbstractCommand
+    parameter 'TEMPLATE_NAME', 'Template to generate from',
+      :attribute_name => :template
+    parameter '[ARGS] ...', 'Template arguments',
+      :attribute_name => :arguments
+    option ['-o', '--output'], 'OUTPUT_DIR', 'Where to put the generated files',
+      :default => Dir.pwd
+    option ['-d', '--delete'], :flag, 'Clear the output folder first', 
+      :default => false
+
+    def execute
+      # Instantiate the generator and build the stuff
+      gen = Generator.new(
+        template, 
+        arguments, 
+        output,
+        delete?, 
+        verbose?)
+      t_start = Time.now      
+      gen.build
+      t_end = Time.now
+      puts "BUILT in #{t_end - t_start} seconds"
+    end
+  end
+
+  # Entry point of the cli
+  class MainCommand < AbstractCommand
+    subcommand 'build', 'Build from templates', BuildCommand
+    subcommand 'list', 'List available templates', ListCommand
+  end
+
   # Public: CLI Stuff, parse command line inputs to determine what to do
   def self.execute
-
-    usage = 'Usage: templatron TEMPLATE_NAME [args] [-o output_dir]'
-
-    # If no argument has been given, print usage
-    if ARGV.length == 0
-      puts usage
-      exit
-    end
-
-    # Defines the structure and default values
-    options = OpenStruct.new
-    options.output_dir = Dir.pwd
-    options.verbose = false
-    options.delete_dir = false
-
-    # Defines options parser
-    opt_parser = OptionParser.new do |opts|
-      opts.banner = usage
-      opts.default_argv = '-h'
-
-      opts.separator ''
-      opts.separator 'Features:'
-
-      # Defines where to put generated files
-      opts.on('-o', '--output PATH', 'Where to put the generated files') do |dir|
-        options.output_dir = dir
-      end
-
-      # Should we remove the output directory first
-      opts.on('-d', '--delete', 'If set, clear the output directory first') do
-        options.delete_dir = true
-      end
-
-      opts.separator ''
-      opts.separator 'Common options:'
-
-      # Verbose mode
-      opts.on('-v', '--verbose', 'Verbose mode') do
-        options.verbose = true
-      end
-
-      # Print the help
-      opts.on_tail('-h', '--help', 'Show this message') do
-        puts opts
-        puts ''
-        puts "Templates path: #{Templatron::templates_path}"
-        exit
-      end
-
-      # Print version number
-      opts.on_tail('--version', 'Show version') do
-        puts Templatron::VERSION
-        exit
-      end
-    end
-
-    opt_parser.parse!(ARGV)
-
-    # Instantiate the generator and build the stuff
-    gen = Generator.new(
-      ARGV[0], 
-      ARGV[1..ARGV.length], 
-      options.output_dir,
-      options.delete_dir, 
-      options.verbose)
-    gen.build
+    MainCommand.run
   end
 
 end
