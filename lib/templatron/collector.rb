@@ -17,7 +17,6 @@ module Templatron
     # verbose - Verbose mode?
     def initialize(path, include_files, include_sub, verbose = false)
       @full_path = File.join(Templatron::templates_path, expand_path(path))
-
       @verbose = verbose
       @include_files = include_files
       @include_subfolders = include_sub

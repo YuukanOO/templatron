@@ -39,9 +39,12 @@ module Templatron
       if @clear
         puts "Clearing #{@output}" if @verbose
         begin
-          FileUtils.remove_dir(@output, true)
-        rescue
-          puts "Could not clear the folder, maybe someone is accessing it? Exiting..."
+          FileUtils.remove_dir(@output)
+        rescue => ex
+          puts """Could not clear the folder, maybe someone is accessing it?
+  
+  #{ex.message}
+"""
           exit(1)
         end
       end
@@ -61,6 +64,19 @@ module Templatron
 
     protected
 
+    # Internal: Try to create a directory and fails gracefuly
+    def create_directory(path)
+      begin
+        FileUtils.mkdir_p(path)
+      rescue => ex
+        puts """Error while creating the directory #{path}
+
+  #{ex.message}
+"""
+        exit(1)
+      end
+    end
+
     # Internal: Process each entries, copy the files and replaces variables
     # 
     # entries - An array of files to process
@@ -79,12 +95,12 @@ module Templatron
 
         if is_dir
           puts "Creating directory #{path} to #{full_new_path}" if @verbose
-          FileUtils.mkdir_p(full_new_path)
+          create_directory(full_new_path)
         else
           # Now we can copy the entry
           puts "Copying #{path} to #{full_new_path}" if @verbose
 
-          FileUtils.mkdir_p(File.dirname(full_new_path))
+          create_directory(File.dirname(full_new_path))
           FileUtils.copy(path, full_new_path)
 
           file_content = File.read(full_new_path)
@@ -131,6 +147,8 @@ module Templatron
     # Internal: Check if the template directory exists
     # 
     # dir - Where to look
+    # 
+    # Returns true if the directory exists, false otherwise
     def check_template_dir(dir)
       Dir.exist?(dir)
     end
