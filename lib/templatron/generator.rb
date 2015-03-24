@@ -119,11 +119,12 @@ module Templatron
     # 
     # str - Where to look & replace
     def apply_arguments!(str)
-      str.scan(/{\$(\d*)\W?([\w\s]*)}/).each do |match|
+      str.scan(Templatron::PLACEHOLDER_REG).each do |match|
         match_i = match[0].to_i
         arg_value = @arguments[match_i]
         arg_value = match[1] if arg_value.nil?
-        str.gsub!(/{\$#{match_i}\W?([\w\s]*)}/, arg_value)
+
+        str.gsub!(Templatron::placeholder_reg(match_i), arg_value)
       end
     end
 
