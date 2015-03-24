@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/YuukanOO/templatron'
   s.summary = 'An easy to use scaffold generator'
   s.description = 'Defines templates with variables and generates whatever you want'
+  s.add_runtime_dependency "clamp", "~> 0.6.4"
 
   s.rubyforge_project = 'templatron'
 
