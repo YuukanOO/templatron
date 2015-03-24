@@ -91,7 +91,12 @@ If you want to list the content of the folder `base/profile/{$1 authors}`, you c
 
 Main command to build your structure from a directory template. As mentionned in the `list` subcommand, you can build directly a nested directory by passing the path to the command.
 
-For example, in the basic example, if you only want to build the sub folder `base/profile/{$1 authors}` into `/home/john/test`, you can type `templatron build -o /home/john/test base/profile/authors $2=avatar_value`.
+For example, in the basic example, if you only want to build the sub folder `base/profile/{$1 authors}` into `/home/john/test`, you can type `templatron build -o /home/john/test base/profile/authors $2=avatar_value` and you'll end up with:
+
+- /home/
+    - /john/
+        - /test/
+            - avatar_value.png
 
 ## Why?
 
