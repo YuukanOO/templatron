@@ -38,13 +38,18 @@ module Templatron
       # If sets, remove the output folder first
       if @clear
         puts "Clearing #{@output}" if @verbose
-        FileUtils.remove_dir(@output, true)
+        begin
+          FileUtils.remove_dir(@output, true)
+        rescue
+          puts "Could not clear the folder, maybe someone is accessing it? Exiting..."
+          exit(1)
+        end
       end
 
       # Print details if verbose is on
       if @verbose
         puts "Starting building #{@collector.full_path} to #{@output}"
-        puts "With:"
+        puts "With:" if !@arguments.empty?
         @arguments.each_with_index do |arg, i|
           puts "\t{$#{i}} => #{arg}" if !arg.nil?
         end

@@ -50,7 +50,10 @@ module Templatron
         output,
         delete?, 
         verbose?)
+      t_start = Time.now      
       gen.build
+      t_end = Time.now
+      puts "BUILT in #{t_end - t_start} seconds"
     end
   end
 
